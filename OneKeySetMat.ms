@@ -90,7 +90,51 @@ struct MatColors(diffuse_col,reflection_col,refraction_col,fog_color,light_col)
 --20190417 hyq添加 获取材质的颜色信息
 fn Get_Mat_Color Mat=
 (
-	
+	local diffuse_col,reflection_col,refraction_col,fog_color,light_col
+	case (classof Mat) of
+	(
+		VRayMtl:(
+			print "材质类型为"
+			print (classof Mat)
+			diffuse_col = Mat.diffuse
+			reflection_col = Mat.reflection
+			refraction_col = Mat.refraction
+			fog_color = Mat.refraction_fogColor
+			light_col =Mat.selfIllumination
+			)
+		VRayLightMtl:(
+			print "材质类型为"
+			print (classof Mat)
+			----------如果想要获取颜色的材质为灯光材质
+			--local default_col =(color 0 0 0)	--默认颜色
+			
+			--diffuse_col = undefined
+			--reflection_col = undefined
+			--refraction_col = undefined
+			--fog_color = undefined			
+			light_col = Mat.color
+			
+			)
+		Standardmaterial:(
+			print "材质类型为"
+			print (classof Mat)
+			diffuse_col = Mat.diffuse
+			reflection_col=Mat.specular
+			refraction_col=undefined
+			fog_color =  undefined
+			light_col =if (Mat.useSelfIllumColor == on) then Mat.selfIllumColor
+			)
+		default:(
+			--print "材质类型为"
+			--print "想要提取颜色的材质暂不支持"
+			diffuse_col = undefined
+			reflection_col = undefined
+			refraction_col = undefined
+			fog_color = undefined			
+			light_col = undefined
+			)
+	)
+	MatColors_result = MatColors diffuse_col:diffuse_col reflection_col:reflection_col refraction_col:refraction_col fog_color:fog_color light_col:light_col
 )
 ------------------------------------------------------------------------------------------------------------------------
 	--获取Mtl的贴图
