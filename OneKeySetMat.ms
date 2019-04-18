@@ -100,7 +100,7 @@ fn Get_Mat_Color Mat=
 			reflection_col = Mat.reflection
 			refraction_col = Mat.refraction
 			fog_color = Mat.refraction_fogColor
-			light_col =Mat.selfIllumination
+			light_col =Mat.diffuse	-- 漫反射颜色作为发光材质的颜色备用色
 			)
 		VRayLightMtl:(
 			print "材质类型为"
@@ -134,7 +134,54 @@ fn Get_Mat_Color Mat=
 			light_col = undefined
 			)
 	)
+	print ("diffuse_col:	"+diffuse_col as string)
+	print ("reflection_col:	"+reflection_col as string)
+	print ("refraction_col:	"+refraction_col as string)
+	print ("fog_color:	"+ fog_color as string)
+	print ("light_col:	"+light_col as string)
 	MatColors_result = MatColors diffuse_col:diffuse_col reflection_col:reflection_col refraction_col:refraction_col fog_color:fog_color light_col:light_col
+)
+-------------------------------------------------------------------------------------------------------------------------
+
+--201904182211--Set Color
+--HMtl 获取到的原材质球的贴图信息
+--MatColors 获取到的原材质球的颜色信息
+fn Set_Mat_Color HMtl MatColors Mat=
+(
+	case (classof Mat) of
+	(
+		VRayMtl:(
+			print "材质类型为"
+			print (classof Mat)
+			if (HMtl.mtlDiffuse ==undefined AND MatColors.diffuse_col!=undefined)  then  Mat.diffuse = MatColors.diffuse_col
+			if (HMtl.mtlReflection ==undefined AND  MatColors.reflection_col!=undefined AND Mat.reflection !=(Color 0 0 0) ) then  Mat.reflection = MatColors.reflection_col
+			if (HMtl.mtlRefraction ==undefined  AND  MatColors.refraction_col!=undefined AND Mat.refraction !=(Color 0 0 0)) then  Mat.refraction = MatColors.refraction_col
+			if (HMtl.mtlRefraction == undefined AND Mat.refraction !=(Color 0 0 0) )then  Mat.refraction_fogColor = MatColors.fog_color		--如果材质球的折射refraction 的颜色不等于纯黑色，则将原始材质的fogcolor颜色抽取过来给目标新材质
+			--  Mat.selfIllumination = MatColors.light_col		--标准VRayMtl不用抽取原材质的这个颜色，一切以模版里的这个颜色的值为准
+		)
+		VRayLightMtl:(
+			print "材质类型为"
+			print (classof Mat)
+			----------如果想要获取颜色的材质为灯光材质
+			--local default_col =(color 0 0 0)	--默认颜色
+			
+			--diffuse_col = undefined
+			--reflection_col = undefined
+			--refraction_col = undefined
+			--fog_color = undefined			
+			if MatColors.light_col != undefined then Mat.color=MatColors.light_col
+			
+			)
+		Standardmaterial:(
+			print "材质类型为"
+			print (classof Mat)
+			if (HMtl.mtlDiffuse ==undefined AND MatColors.diffuse_col!=undefined ) then Mat.diffuse = MatColors.diffuse_col
+			if (HMtl.mtlDiffuse ==undefined AND MatColors.reflection_col!=undefined ) then Mat.specular =MatColors.reflection_col
+			--refraction_col=undefined
+			--fog_color =  undefined
+			if MatColors.light_col != undefined then Mat.selfIllumColor =MatColors.light_col 
+			)
+	)
 )
 ------------------------------------------------------------------------------------------------------------------------
 	--获取Mtl的贴图
@@ -275,14 +322,14 @@ fn Get_Map Mtl =
 			
 		--MatOrg_params =if Mtl_Org!=undefined then getPropNames(classof Mtl_Org)	--原始材质球的属性
 		--MatTar_params = if Mtl_Tar !=undefined then getPropNames(classof Mtl_Tar)	--目标材质球的属性
-		--getmaps 提取原始材质的贴图信息
-		orgi_Maps = Get_Map Mtl_Org
+		
+		orgi_Maps = Get_Map Mtl_Org		--getmaps 提取原始材质的贴图信息
 	
 		--对目标材质Mtl_Tar的通道进行赋材质操作
 		Mtl_Tar2 = copy Mtl_Tar		
-		Mtl_Tar2 = SetChannelMap Mtl_Tar orgi_Maps
+		Mtl_Tar2 = SetChannelMap Mtl_Tar orgi_Maps		--对Mtl_Tar进行贴图赋值
 		--获取Mtl_Org的颜色信息
-		
+		Set_Mat_Color orgi_Maps (Get_Mat_Color Mtl_Org) Mtl_Tar2 	--对Mtl_Tar进行颜色赋值
 		--对目标材质进行必要的颜色设置
 		if Mtl_Tar2==undefined then return messagebox "未成功生成材质！"
 		return Mtl_Tar2
