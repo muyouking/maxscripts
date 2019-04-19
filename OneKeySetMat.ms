@@ -150,13 +150,22 @@ fn Set_Mat_Color HMtl MatColors Mat=
 (
 	--201904191209，添加判断是特殊材质，抽取颜色，或者抽取漫反射颜色放到反射通道里
 	--加多一个判断，如果是falloff通道，而通道里以没有贴图，则将对应通道取的的颜色放到fallof里的颜色里
-	isSetColor = matchpattern Mat.name pattern:"YF_moshajinshu"
+	--isSetColor = matchpattern Mat.name pattern:"YF_moshajinshu"
 	case (classof Mat) of
 	(
 		VRayMtl:(
 			print "材质类型为"
 			print (classof Mat)
 			if (HMtl.mtlDiffuse ==undefined AND MatColors.diffuse_col!=undefined)  then  Mat.diffuse = MatColors.diffuse_col
+			--判断，如果原材质没有漫反射贴图，目标材质的漫反射是falloff通道，则将原材质的漫反射颜色放到目标材质的漫反射颜色，并且目标材质的漫反射通道falloff的两个颜色也设置成这个颜色
+			if (HMtl.mtlDiffuse ==undefined AND MatColors.diffuse_col!=undefined AND classof Mat.texmap_diffuse==falloff) then 
+			(
+				--Mat.texmap_diffuse.color1=MatColors.diffuse_col
+				--print "falloff Color"
+				--print MatColors.diffuse_col as string
+				Mat.texmap_diffuse.color1 = MatColors.diffuse_col
+				Mat.texmap_diffuse.color2 = Mat.texmap_diffuse.color1
+				)
 			--if (HMtl.mtlReflection ==undefined AND  MatColors.reflection_col!=undefined AND Mat.reflection !=(Color 0 0 0) ) then  Mat.reflection = MatColors.reflection_col
 			--if (HMtl.mtlRefraction ==undefined  AND  MatColors.refraction_col!=undefined AND Mat.refraction !=(Color 0 0 0)) then  Mat.refraction = MatColors.refraction_col
 			--if (HMtl.mtlRefraction == undefined AND Mat.refraction !=(Color 0 0 0) )then  Mat.refraction_fogColor = MatColors.fog_color		--如果材质球的折射refraction 的颜色不等于纯黑色，则将原始材质的fogcolor颜色抽取过来给目标新材质
