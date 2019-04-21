@@ -393,3 +393,24 @@ mats[1]
   
 )
 --------------------------------------------------------------------------------
+--设置材质 
+--MatTemp材质
+fn Set_Mat MatTemp =
+(
+	matTar = MatTemp
+	matTar.name = matTar.name+"_a"+num as string
+	global objs = if (GetObjsFromSelect() !=undefined )do GetObjsFromSelect() 	--获取与选择物体同材质的所有obj物体
+	--if objs!=undefined do print objs
+		
+	local mtl = if ($ ==undefined )then messagebox "请选择物体" else  (GetMatFromSelect())
+	 
+		
+	--$.material = (MatA_To_MatB mtl matTar)
+	MatTemp2 = MatA_To_MatB mtl matTar
+	for obj in objs do  (obj.material=MatTemp2)
+	num+=1		
+)
+
+--与上面的Set_Mat结合，这里是以名称为源然后从材质库里找到其对应的材质，将这个材质作为参数传给Set_Mat 方法
+--MatName 准备指定的材质的材质类型
+fn SetMat_FromName MatName = copy  currentMaterialLibrary[MatName]
