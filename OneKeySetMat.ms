@@ -377,22 +377,36 @@ fn GetObjsFromSelect  =
 fn GetMatFromSelect  = 
 (local objs = selection as array
  local mats = for obj in objs where (obj.material!=undefined ) collect obj.material
- --matnames = for mat in mats where mats.count>1 collect mat.name
- --local matnames_RemoveTheSame=#()	 
- --matnames_RemoveTheSame =if matnames.count>1 then RemoveTheSame matnames
  
-	/*mtl = case of
-	(
-		(matnames_RemoveTheSame.count==1):mats
-		(matnames_RemoveTheSame.count == 0):return messagebox "选择物体没有材质"		
-		default:return messagebox "物体物体有多个材质球"
-	)
-	*/
 mats[1]
 
   
 )
 --------------------------------------------------------------------------------
+--设置材质 
+--MatTemp材质
+fn Set_Mat MatTemp =
+(
+	matTar = MatTemp
+	matTar.name = matTar.name+"_a"+num as string
+	global objs = if (GetObjsFromSelect() !=undefined )do GetObjsFromSelect() 	--获取与选择物体同材质的所有obj物体
+	--if objs!=undefined do print objs
+		
+	local mtl = if ($ ==undefined )then messagebox "请选择物体" else  (GetMatFromSelect())
+	 
+		
+	--$.material = (MatA_To_MatB mtl matTar)
+	MatTemp2 = MatA_To_MatB mtl matTar
+	for obj in objs do  (obj.material=MatTemp2)
+	num+=1		
+)
+
+--与上面的Set_Mat结合，这里是以名称为源然后从材质库里找到其对应的材质，将这个材质作为参数传给Set_Mat 方法
+--MatName 准备指定的材质的材质类型
+fn SetMat_FromName MatName = 
+(
+	Mat = copy  currentMaterialLibrary[MatName]
+)
 
 --------------------------------------------------------------------------------
 
@@ -410,28 +424,11 @@ rollout hyq2 "SetMaterial" width:161 height:117
 		
 	on btn9 picked MatTemp do
 	(
-			--选中将要给材质的物体，点这个按扭，选择准备给的材质如：YF_yaguangmucai,直接如下操作
-			--抽取选择物体的贴图
-			--
-			--mtl 目标Mat
-			--$.material 选择物体的mat	
-			--print mtl
-			--if $ != undefined do $.material=mtl
-			matTar = MatTemp
-			matTar.name = matTar.name+"_a"+num as string
-			--global objs = if GetObjsFromSelect() !=undefined do GetObjsFromSelect() 	--获取与选择物体同材质的所有obj物体
-			--if objs!=undefined do print objs
-			
-		local mtl = if ($ ==undefined )then messagebox "请选择物体" else  (GetMatFromSelect())
-		 
-			
-			$.material = (MatA_To_MatB mtl matTar)
-				
-				--(MatA_To_MatB mtl MatTemp; for obj in objs do  obj.material=MatTemp )					
-			num+=1			
-				
+		
+		Set_Mat MatTemp	--调用Set_Mat方法
 					
-				)
+			
+	)
 	on btn17 pressed do
 	(
 	if MatIndex>AllMats.count then MatIndex=1	--如果将所有的材质都导入一遍之后再按此按扭，将重新导入一次
